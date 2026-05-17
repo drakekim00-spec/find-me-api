@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 
 const TOSSMINI_ORIGINS = [
-  'https://find-me.apps.tossmini.com',
-  'https://find-me.private-apps.tossmini.com',
+  'https://life-signal-safety.apps.tossmini.com',
+  'https://life-signal-safety.private-apps.tossmini.com',
 ]
 
 export function corsHeaders(request: Request): HeadersInit {

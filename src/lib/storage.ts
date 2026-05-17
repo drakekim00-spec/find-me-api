@@ -1,3 +1,5 @@
+import { normalizePhone } from '@/lib/phone'
+
 /** Vercel 서버리스: 워밍 동안 유지 (영구 저장은 추후 KV/DB 연동) */
 
 export type StoredInvite = {
@@ -33,9 +35,17 @@ export type EmergencySession = {
   acknowledgedAt?: number
 }
 
+export type RegisteredUser = {
+  userKey: string
+  phone?: string
+  registeredAt: string
+}
+
 type Store = {
   groupPremiumKeys: Set<string>
   phoneToUserKey: Map<string, string>
+  /** 앱 진입 시 등록된 userKey (QR 테스트 확인용, 서버 재시작 시 초기화) */
+  registeredUsers: Map<string, RegisteredUser>
   invites: Map<string, StoredInvite>
   locations: Map<string, WardLocation>
   cycles: Map<string, WardCycle>
@@ -48,6 +58,7 @@ function getStore(): Store {
     g.__findMeApiStore = {
       groupPremiumKeys: new Set(),
       phoneToUserKey: new Map(),
+      registeredUsers: new Map(),
       invites: new Map(),
       locations: new Map(),
       cycles: new Map(),
@@ -69,8 +80,27 @@ export function isGroupPremium(userKeys: string[]): boolean {
   return userKeys.some((key) => s.groupPremiumKeys.has(key))
 }
 
+export function registerUserKey(userKey: string, phone?: string) {
+  const key = userKey.trim()
+  if (!key) return
+  getStore().registeredUsers.set(key, {
+    userKey: key,
+    phone: phone?.trim() || undefined,
+    registeredAt: new Date().toISOString(),
+  })
+  if (phone?.trim()) {
+    getStore().phoneToUserKey.set(normalizePhone(phone), key)
+  }
+}
+
+export function listRegisteredUsers(limit = 20): RegisteredUser[] {
+  const users = [...getStore().registeredUsers.values()]
+  users.sort((a, b) => b.registeredAt.localeCompare(a.registeredAt))
+  return users.slice(0, limit)
+}
+
 export function registerPhone(phone: string, userKey: string) {
-  getStore().phoneToUserKey.set(phone, userKey)
+  registerUserKey(userKey, phone)
 }
 
 export function lookupUserKey(phone: string): string | undefined {

@@ -6,6 +6,11 @@ export default function Home() {
       <p>
         상태 확인: <a href="/api/health">/api/health</a>
       </p>
+      <p style={{ marginTop: 16 }}>
+        약관: <a href="/terms">서비스 이용약관</a>
+        {' · '}
+        <a href="/privacy">개인정보 처리방침</a>
+      </p>
     </main>
   )
 }

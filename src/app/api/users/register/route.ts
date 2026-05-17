@@ -1,4 +1,4 @@
-import { registerPhone } from '@/lib/storage'
+import { registerUserKey } from '@/lib/storage'
 import { normalizePhone } from '@/lib/phone'
 import { json, options } from '@/lib/cors'
 
@@ -11,8 +11,11 @@ export async function POST(request: Request) {
     userKey?: string
     phone?: string
   }
-  if (body.userKey && body.phone) {
-    registerPhone(normalizePhone(body.phone), body.userKey)
+  const userKey = body.userKey?.trim()
+  if (userKey) {
+    const phone = body.phone ? normalizePhone(body.phone) : undefined
+    registerUserKey(userKey, phone)
+    console.info('[api] user register', { userKey, phone: phone ?? null })
   }
   return json(request, { ok: true })
 }
