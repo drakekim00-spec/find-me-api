@@ -143,3 +143,28 @@ export function acknowledgeEmergency(wardUserKey: string) {
   const session = getStore().emergencies.get(wardUserKey)
   if (session) session.acknowledgedAt = Date.now()
 }
+
+/** 토스 연결 끊기 콜백 — 서버에 저장된 해당 userKey 데이터 삭제 */
+export function purgeUserData(userKey: string): boolean {
+  const key = userKey.trim()
+  if (!key) return false
+
+  const s = getStore()
+  const hadRegistered = s.registeredUsers.delete(key)
+  s.groupPremiumKeys.delete(key)
+  s.locations.delete(key)
+  s.cycles.delete(key)
+  s.emergencies.delete(key)
+
+  for (const [phone, uk] of s.phoneToUserKey.entries()) {
+    if (uk === key) s.phoneToUserKey.delete(phone)
+  }
+
+  for (const [token, invite] of s.invites.entries()) {
+    if (invite.inviterUserKey === key || invite.inviteeUserKey === key) {
+      s.invites.delete(token)
+    }
+  }
+
+  return hadRegistered
+}
